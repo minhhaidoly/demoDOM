@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List - Ví dụ DOM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #taskInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #addBtn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        #addBtn:hover {
+            background: #5a67d8;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        #taskList {
+            list-style: none;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+            border-left-color: #28a745;
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: black;
+        }
+
+        .edit-btn:hover {
+            background: #e0a800;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .clear-all {
+            width: 100%;
+            padding: 12px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .clear-all:hover {
+            background: #c82333;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .edit-input {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .save-btn {
+            padding: 8px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cancel-btn {
+            padding: 8px 12px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 To-Do List</h1>
+        
+        <!-- Thống kê -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div>Tổng số</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="completedTasks">0</div>
+                <div>Hoàn thành</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="pendingTasks">0</div>
+                <div>Chưa xong</div>
+            </div>
+        </div>
+
+        <!-- Thêm task mới -->
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Nhập công việc mới...">
+            <button id="addBtn">Thêm</button>
+        </div>
+
+        <!-- Bộ lọc -->
+        <div class="filter-section">
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="pending">Chưa xong</button>
+            <button class="filter-btn" data-filter="completed">Hoàn thành</button>
+        </div>
+
+        <!-- Danh sách task -->
+        <ul id="taskList"></ul>
+
+        <!-- Nút xóa tất cả -->
+        <button class="clear-all" id="clearAllBtn">Xóa tất cả</button>
+    </div>
+
+    <script>
+        // Các thao tác DOM được sử dụng trong project này:
+        // 1. getElementById() - Lấy element theo ID
+        // 2. querySelector() / querySelectorAll() - Lấy element theo CSS selector
+        // 3. createElement() - Tạo element mới
+        // 4. appendChild() - Thêm element con
+        // 5. removeChild() - Xóa element con
+        // 6. addEventListener() - Thêm event listener
+        // 7. innerHTML / textContent - Thay đổi nội dung
+        // 8. classList - Thao tác với class
+        // 9. setAttribute() / getAttribute() - Thao tác với attribute
+        // 10. style - Thay đổi CSS
+
+        class TodoApp {
+            constructor() {
+                this.tasks = [];
+                this.currentFilter = 'all';
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.render();
+            }
+
+            bindEvents() {
+                // Lấy các element bằng DOM
+                const addBtn = document.getElementById('addBtn');
+                const taskInput = document.getElementById('taskInput');
+                const clearAllBtn = document.getElementById('clearAllBtn');
+                const filterBtns = document.querySelectorAll('.filter-btn');
+
+                // Thêm event listeners
+                addBtn.addEventListener('click', () => this.addTask());
+                taskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addTask();
+                });
+                clearAllBtn.addEventListener('click', () => this.clearAllTasks());
+
+                // Event delegation cho filter buttons
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.setFilter(e.target.dataset.filter);
+                    });
+                });
+            }
+
+            addTask() {
+                const taskInput = document.getElementById('taskInput');
+                const taskText = taskInput.value.trim();
+
+                if (taskText === '') {
+                    alert('Vui lòng nhập nội dung công việc!');
+                    return;
+                }
+
+                const newTask = {
+                    id: Date.now(),
+                    text: taskText,
+                    completed: false
+                };
+
+                this.tasks.push(newTask);
+                taskInput.value = '';
+                this.render();
+            }
+
+            toggleTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    this.render();
+                }
+            }
+
+            deleteTask(taskId) {
+                this.tasks = this.tasks.filter(t => t.id !== taskId);
+                this.render();
+            }
+
+            editTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+                const taskText = taskElement.querySelector('.task-text');
+                const taskActions = taskElement.querySelector('.task-actions');
+
+                // Tạo input để edit
+                const editInput = document.createElement('input');
+                editInput.type = 'text';
+                editInput.value = task.text;
+                editInput.className = 'edit-input';
+
+                const saveBtn = document.createElement('button');
+                saveBtn.textContent = 'Lưu';
+                saveBtn.className = 'save-btn';
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = 'Hủy';
+                cancelBtn.className = 'cancel-btn';
+
+                // Thay thế nội dung
+                taskText.style.display = 'none';
+                taskActions.style.display = 'none';
+                
+                taskElement.appendChild(editInput);
+                taskElement.appendChild(saveBtn);
+                taskElement.appendChild(cancelBtn);
+
+                editInput.focus();
+
+                // Event handlers cho edit mode
+                const saveEdit = () => {
+                    const newText = editInput.value.trim();
+                    if (newText !== '') {
+                        task.text = newText;
+                        this.render();
+                    }
+                };
+
+                const cancelEdit = () => {
+                    this.render();
+                };
+
+                saveBtn.addEventListener('click', saveEdit);
+                cancelBtn.addEventListener('click', cancelEdit);
+                editInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') saveEdit();
+                    if (e.key === 'Escape') cancelEdit();
+                });
+            }
+
+            setFilter(filter) {
+                this.currentFilter = filter;
+                
+                // Cập nhật active button
+                const filterBtns = document.querySelectorAll('.filter-btn');
+                filterBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                });
+
+                this.render();
+            }
+
+            getFilteredTasks() {
+                switch (this.currentFilter) {
+                    case 'completed':
+                        return this.tasks.filter(task => task.completed);
+                    case 'pending':
+                        return this.tasks.filter(task => !task.completed);
+                    default:
+                        return this.tasks;
+                }
+            }
+
+            updateStats() {
+                const totalTasks = document.getElementById('totalTasks');
+                const completedTasks = document.getElementById('completedTasks');
+                const pendingTasks = document.getElementById('pendingTasks');
+
+                const total = this.tasks.length;
+                const completed = this.tasks.filter(task => task.completed).length;
+                const pending = total - completed;
+
+                totalTasks.textContent = total;
+                completedTasks.textContent = completed;
+                pendingTasks.textContent = pending;
+            }
+
+            render() {
+                const taskList = document.getElementById('taskList');
+                const filteredTasks = this.getFilteredTasks();
+
+                // Xóa tất cả task hiện tại
+                taskList.innerHTML = '';
+
+                if (filteredTasks.length === 0) {
+                    const emptyMessage = document.createElement('li');
+                    emptyMessage.className = 'empty-message';
+                    emptyMessage.textContent = 'Không có công việc nào!';
+                    taskList.appendChild(emptyMessage);
+                } else {
+                    filteredTasks.forEach(task => {
+                        const taskElement = this.createTaskElement(task);
+                        taskList.appendChild(taskElement);
+                    });
+                }
+
+                this.updateStats();
+            }
+
+            createTaskElement(task) {
+                // Tạo element mới
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
+                li.setAttribute('data-task-id', task.id);
+
+                // Tạo checkbox
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'task-checkbox';
+                checkbox.checked = task.completed;
+                checkbox.addEventListener('change', () => this.toggleTask(task.id));
+
+                // Tạo text
+                const taskText = document.createElement('span');
+                taskText.className = 'task-text';
+                taskText.textContent = task.text;
+
+                // Tạo actions
+                const taskActions = document.createElement('div');
+                taskActions.className = 'task-actions';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-btn';
+                editBtn.textContent = 'Sửa';
+                editBtn.addEventListener('click', () => this.editTask(task.id));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = 'Xóa';
+                deleteBtn.addEventListener('click', () => {
+                    if (confirm('Bạn có chắc muốn xóa công việc này?')) {
+                        this.deleteTask(task.id);
+                    }
+                });
+
+                taskActions.appendChild(editBtn);
+                taskActions.appendChild(deleteBtn);
+
+                // Thêm tất cả vào li
+                li.appendChild(checkbox);
+                li.appendChild(taskText);
+                li.appendChild(taskActions);
+
+                return li;
+            }
+
+            clearAllTasks() {
+                if (this.tasks.length === 0) {
+                    alert('Không có công việc nào để xóa!');
+                    return;
+                }
+
+                if (confirm('Bạn có chắc muốn xóa tất cả công việc?')) {
+                    this.tasks = [];
+                    this.render();
+                }
+            }
+        }
+
+        // Khởi tạo app khi DOM đã load
+        document.addEventListener('DOMContentLoaded', () => {
+            new TodoApp();
+        });
+    </script>
+</body>
+</html>
